@@ -1,0 +1,59 @@
+name: Cypress tests (three runs)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cypress:
+    name: Run Cypress three times
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Cypress test round 1
+        id: test_round_1
+        run: npm test
+        continue-on-error: true
+
+      - name: Wait 10 minutes before round 2
+        run: sleep 600
+
+      - name: Run Cypress test round 2
+        id: test_round_2
+        run: npm test
+        continue-on-error: true
+
+      - name: Wait 10 minutes before round 3
+        run: sleep 600
+
+      - name: Run Cypress test round 3
+        id: test_round_3
+        run: npm test
+        continue-on-error: true
+
+      - name: Report test-round failures
+        if: always()
+        env:
+          ROUND_1: ${{ steps.test_round_1.outcome }}
+          ROUND_2: ${{ steps.test_round_2.outcome }}
+          ROUND_3: ${{ steps.test_round_3.outcome }}
+        run: |
+          if [[ "$ROUND_1" != "success" || "$ROUND_2" != "success" || "$ROUND_3" != "success" ]]; then
+            echo "::error::At least one Cypress test round failed (round 1: $ROUND_1, round 2: $ROUND_2, round 3: $ROUND_3)."
+            exit 1
+          fi

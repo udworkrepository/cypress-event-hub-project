@@ -42,6 +42,17 @@ You can run a single spec headlessly with:
 npx cypress run --spec cypress/tests/event-booking.cy.js
 ```
 
+## Run the CI workflow once
+The GitHub Actions workflow at `.github/workflows/cypress.yml` is manual-only; it is not scheduled to run repeatedly.
+
+To start it:
+1. Push this repository to GitHub.
+2. Open the repository's **Actions** tab.
+3. Select **Cypress tests (three runs)**.
+4. Click **Run workflow**, choose the `main` branch, then confirm **Run workflow**.
+
+The workflow installs dependencies and runs `npm test` three times, waiting 10 minutes between consecutive runs. It takes about 20 minutes plus the duration of the tests. All three rounds run even if a test round fails; the workflow reports failure at the end if any round failed. Each suite execution creates new test accounts for registration and authenticated-page access. Booking confirmations remain stubbed so no real seats are reserved.
+
 ## Project structure
 ```text
 cypress-eventhub-project/
@@ -56,6 +67,9 @@ cypress-eventhub-project/
 │   └── support/
 │       └── testUser.js
 ├── .gitignore
+├── .github/
+│   └── workflows/
+│       └── cypress.yml
 ├── cypress.config.js
 ├── package.json
 ├── README.md
